@@ -19,12 +19,12 @@ function imageAlphaMaskBackground( &$picture, $mask ,$background ) {
     $ySize = imagesy( $picture ); // get y
     $newPicture = imagecreatetruecolor( $xSize, $ySize );// Create a new true color image 24-bit  (bit depth) image
     // sets the flag to attempt to save full alpha channel information (as opposed to single-color transparency) when saving PNG images.
-    imagesavealpha( $newPicture, true ); 
+    // imagesavealpha( $newPicture, true ); 
     // imagefill : Performs a flood fill starting at the given coordinate (top left is 0, 0) with the given color in the image.
     // imagecolorallocatealpha : Allocate a color for an image with the addition of the transparency parameter alpha.
     // imagecolorallocatealpha return the color or false
     // make image transperent
-    imagefill( $newPicture, 0, 0, imagecolorallocatealpha( $newPicture, 0, 0, 0, 127 ) );
+    // imagefill( $newPicture, 0, 0, imagecolorallocate( $newPicture, 0, 0, 0 ) );
 
     // Perform the equation foreground * alpha + background * 1-alpha or something like this :)
     /* 
@@ -40,11 +40,12 @@ function imageAlphaMaskBackground( &$picture, $mask ,$background ) {
         for( $y = 0; $y < $ySize; $y++ ) {            
             $alpha = imagecolorsforindex( $mask, imagecolorat( $mask, $x, $y ) );            
             $backColor = imagecolorsforindex( $background, imagecolorat( $background, $x, $y ) );
-            $alphaZero = $alpha[ 'red' ];
-            imagesetpixel( $newPicture, $x, $y, imagecolorallocatealpha( $newPicture, $backColor[ 'red' ], $backColor[ 'green' ], $backColor[ 'blue' ], $alphaZero ) );
-            $alpha = 127 - floor( $alpha[ 'red' ] / 2 );
             $color = imagecolorsforindex( $picture, imagecolorat( $picture, $x, $y ) );
-            imagesetpixel( $newPicture, $x, $y, imagecolorallocatealpha( $newPicture, $color[ 'red' ], $color[ 'green' ], $color[ 'blue' ], $alpha ) );
+            $alphaZero = ($alpha[ 'red' ] == 255) ? 1 : 0;
+            $alpha = (127 - floor( $alpha[ 'red' ] / 2 )) == 127 ? 1 : 0;   
+            // echo  'zero '.$alphaZero.' alpha'.$alpha;               
+            imagesetpixel( $newPicture, $x, $y, imagecolorallocate( $newPicture, $backColor[ 'red' ]*$alpha+ $color[ 'red' ]*$alphaZero, $backColor[ 'green' ]*$alpha+ $color[ 'green' ]*$alphaZero, $backColor[ 'blue' ]*$alpha+$color[ 'blue']*$alphaZero) );
+            // imagesetpixel( $newPicture, $x, $y, imagecolorallocatealpha( $newPicture, $color[ 'red' ], $color[ 'green' ], $color[ 'blue' ], $alpha ) );
         }
     }
 
