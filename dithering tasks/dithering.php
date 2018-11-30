@@ -5,30 +5,79 @@ $source_gray = imagecreatefrompng('sweety.png');
 $source_threshold = imagecreatefrompng('sweety.png');
 $source_adapted = imagecreatefrompng('sweety.png');
 $source_floyed = imagecreatefrompng('sweety.png');
+$source_order = imagecreatefrompng('sweety.png');
 
 // convert to gray
 convertToGray($source_gray);
-
 // output the gray png
 imagepng( $source_gray , "sweety_gray.png");
 
 // apply threshold_Dithering
 thresholdDithering($source_threshold);
-
 // output the binary png 
 imagepng( $source_threshold , "sweety_threshold.png");
 
 // apply adapted_threshold_Dithering
 adaptedThresholdDithering($source_adapted);
-
 // output the binary png 
 imagepng( $source_adapted , "sweety_adapted_threshold.png");
 
 // apply floyed_Dithering
 floydDithering($source_floyed);
-
 // output the binary png 
 imagepng( $source_floyed , "sweety_floyed_steinberg.png");
+
+
+// apply order_Dithering
+$threshold_matrix = [[0,128,32,160],[192,64,224,96],[48,176,16,144],[240,112,208,80]];
+orderDithering($source_order,$threshold_matrix);
+// output the binary png 
+imagepng( $source_order , "sweety_order.png");
+
+
+function orderDithering(&$im,$orderThreshold){
+
+    // imagesx — Get image width
+    // imagesy — Get image height
+    // imagecolorat — Get the index of the color of a pixel
+    // imagecolorsforindex — Get the colors for an index
+    // imagecolorallocate — Allocate a color for an image ,
+    //   Returns a color identifier representing the color composed of the given RGB components.
+    // imagesetpixel — Set a single pixel
+
+    $imgwidth = imagesx($im);
+    $imgheight = imagesy($im);
+
+    for ($i=0; $i<$imgwidth; $i++){
+        for ($j=0; $j<$imgheight; $j++){
+
+                // get the gray value for current pixel
+
+                $colorIndex = ImageColorAt($im, $i, $j); 
+
+                // extract each value for r, g, b
+
+                $colors = imagecolorsforindex($im, $colorIndex);
+
+                $row = $j % count($orderThreshold);
+                $column = $i % count($orderThreshold[0]);
+
+                if($colors['red'] >= $orderThreshold[$row][$column])
+                    $color = 255;
+                else
+                    $color = 0;
+
+
+                // get the color identifier
+
+                $colorValue = imagecolorallocate($im, $color, $color, $color);
+
+                // set the pixel value
+
+                imagesetpixel ($im, $i, $j, $colorValue);
+        }
+    }
+}
 
 function floydDithering(&$im){
 
@@ -70,80 +119,85 @@ function floydDithering(&$im){
                 imagesetpixel ($im, $i, $j, $colorValue);
 
 
-                // pixel of i+1,j
+                if($i+1 < $imgwidth){
+                    // pixel of i+1,j
 
-                // get the index of the color
+                    // get the index of the color
 
-                $colorIndex1 = ImageColorAt($im, $i+1, $j); 
+                    $colorIndex1 = ImageColorAt($im, $i+1, $j); 
 
-                // extract each value for r, g, b
+                    // extract each value for r, g, b
 
-                $colors = imagecolorsforindex($im, $colorIndex1);
+                    $colors = imagecolorsforindex($im, $colorIndex1);
 
-                $newColor = round($colors['red']+(7/16)*$error);
+                    $newColor = round($colors['red']+(7/16)*$error);
 
-                // get the color identifier
-                $colorValue1 = imagecolorallocate($im,$newColor, $newColor, $newColor);
+                    // get the color identifier
+                    $colorValue1 = imagecolorallocate($im,$newColor, $newColor, $newColor);
 
-                // set the pixel color
-                imagesetpixel ($im, $i+1, $j, $colorValue1);
+                    // set the pixel color
+                    imagesetpixel ($im, $i+1, $j, $colorValue1);
+                }
 
+                if($i-1 >=0 && $j+1 < $imgheight){
+                    // pixel of i-1,j+1
 
-                // pixel of i-1,j+1
+                    // get the index of the color
 
-                // get the index of the color
+                    $colorIndex1 = ImageColorAt($im, $i-1, $j+1); 
 
-                $colorIndex1 = ImageColorAt($im, $i-1, $j+1); 
+                    // extract each value for r, g, b
 
-                // extract each value for r, g, b
+                    $colors = imagecolorsforindex($im, $colorIndex1);
 
-                $colors = imagecolorsforindex($im, $colorIndex1);
+                    $newColor = round($colors['red']+(3/16)*$error);
 
-                $newColor = round($colors['red']+(3/16)*$error);
+                    // get the color identifier
+                    $colorValue1 = imagecolorallocate($im,$newColor, $newColor, $newColor);
 
-                // get the color identifier
-                $colorValue1 = imagecolorallocate($im,$newColor, $newColor, $newColor);
+                    // set the pixel color
+                    imagesetpixel ($im, $i-1, $j+1, $colorValue1);
+                }
 
-                // set the pixel color
-                imagesetpixel ($im, $i-1, $j+1, $colorValue1);
+                if($j+1 < $imgheight){
+                    // pixel of i,j+1
 
+                    // get the index of the color
 
-                // pixel of i,j+1
+                    $colorIndex1 = ImageColorAt($im, $i, $j+1); 
 
-                // get the index of the color
+                    // extract each value for r, g, b
 
-                $colorIndex1 = ImageColorAt($im, $i, $j+1); 
+                    $colors = imagecolorsforindex($im, $colorIndex1);
 
-                // extract each value for r, g, b
+                    $newColor = round($colors['red']+(5/16)*$error);
 
-                $colors = imagecolorsforindex($im, $colorIndex1);
+                    // get the color identifier
+                    $colorValue1 = imagecolorallocate($im,$newColor, $newColor, $newColor);
 
-                $newColor = round($colors['red']+(5/16)*$error);
+                    // set the pixel color
+                    imagesetpixel ($im, $i, $j+1, $colorValue1);
+                }
 
-                // get the color identifier
-                $colorValue1 = imagecolorallocate($im,$newColor, $newColor, $newColor);
+                if($i+1 < $imgwidth && $j+1 < $imgheight){
+                    // pixel of i+1,j+1
 
-                // set the pixel color
-                imagesetpixel ($im, $i, $j+1, $colorValue1);
+                    // get the index of the color
 
+                    $colorIndex1 = ImageColorAt($im, $i+1, $j+1); 
 
-                // pixel of i+1,j+1
+                    // extract each value for r, g, b
 
-                // get the index of the color
+                    $colors = imagecolorsforindex($im, $colorIndex1);
 
-                $colorIndex1 = ImageColorAt($im, $i+1, $j+1); 
+                    $newColor = round($colors['red']+(1/16)*$error);
 
-                // extract each value for r, g, b
+                    // get the color identifier
+                    $colorValue1 = imagecolorallocate($im,$newColor, $newColor, $newColor);
 
-                $colors = imagecolorsforindex($im, $colorIndex1);
-
-                $newColor = round($colors['red']+(1/16)*$error);
-
-                // get the color identifier
-                $colorValue1 = imagecolorallocate($im,$newColor, $newColor, $newColor);
-
-                // set the pixel color
-                imagesetpixel ($im, $i+1, $j+1, $colorValue1);
+                    // set the pixel color
+                    imagesetpixel ($im, $i+1, $j+1, $colorValue1);
+                }
         }
     }
 }
