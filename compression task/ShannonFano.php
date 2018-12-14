@@ -8,13 +8,20 @@
  *  You can build the tree of Shannon Fano from a message or predefined table
  */
 
+    // build code book from a predefined table (letters with frequencies)
     // $table = ['B'=> 3,'L'=> 2,'E'=> 2,'I'=>1,'A'=>1,'T'=>1,'S'=>1,'N'=>1];
     // $shannon = (new ShannonFano())->setTable($table);
-    $shannon =(new ShannonFano())->setMsg('BBBLLEEIATSN');
-    $shannon->build_code_book();    
-    $shannon->encode_msg();
-    print_r($shannon->get_code_book());
-    echo $shannon->get_compressed_code()."\n";
+
+    // build code book from a message
+    $shannon =(new ShannonFano())->setMessage('BBBLLEEIATSN');
+
+    $shannon->buildCodeBook()->encodeMessage();
+    
+    // print code book
+    print_r($shannon->getCodeBook());
+    
+    // print encoded message
+    echo $shannon->getCompressedCode()."\n";
 
 
 class ShannonFano{
@@ -33,7 +40,7 @@ class ShannonFano{
     }
 
     // Build the table from a message
-    public function setMsg($msg){
+    public function setMessage($msg){
         $this->message = $msg;
         $chars = array_unique(str_split($msg));
         $frequency = count_chars($msg,1);
@@ -50,14 +57,14 @@ class ShannonFano{
         return $this;
     }
 
-    public function build_code_book(){ 
+    public function buildCodeBook(){ 
         foreach($this->table as $key => $value){
             $tempTable =$this->table;
     
             while( count($tempTable) > 1){
         
                 $tempFrequency =array_values($tempTable);
-                $point = $this->get_sepration_point($tempFrequency);
+                $point = $this->getSeprationPoint($tempFrequency);
                 $leftBranch = array_slice($tempTable,0, $point+1, true);
                 $rightBranch = array_slice($tempTable,$point+1,(count($tempTable)-($point+1)),true);
                 if(in_array($key,array_keys($leftBranch))){
@@ -70,25 +77,27 @@ class ShannonFano{
                 }
             }
         }
+        return $this;
     }
 
-    public function encode_msg(){
+    public function encodeMessage(){
         $this->compressedCode = "";
         $array = str_split($this->message);
         foreach($array as $letter){
                 $this->compressedCode .= $this->codeBook[$letter];
         }
+        return $this;
     }
 
-    public function get_code_book(){
+    public function getCodeBook(){
         return $this->codeBook;
     }
 
-    public function get_compressed_code(){
+    public function getCompressedCode(){
         return $this->compressedCode;
     }
 
-    private function get_sepration_point($frequency){
+    private function getSeprationPoint($frequency){
         $result = [];
         for($i =0;$i<count($frequency);$i++){
             $upperHalf = $this->sum($frequency,0,$i);
