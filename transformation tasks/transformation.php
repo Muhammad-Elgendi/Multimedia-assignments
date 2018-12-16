@@ -24,7 +24,7 @@ imagesetthickness($image, 5);
 
 // Draw the polygon
 $points = array(
-    0, 0,
+    100, 0,
     1500, 400,
     1000, 500
 );
