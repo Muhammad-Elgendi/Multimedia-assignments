@@ -42,9 +42,20 @@ function compress(){
                   data: { "msg": text }
                 });
     request.done(function( msg ) {
-      // $( "#ciphertext1" ).val(JSON.stringify(msg));
+      var code = msg['code'];
       // alert (JSON.stringify(msg));
-      $( "#result" ).text(msg);
+      $( "#result" ).text(code);
+      var book = msg['codebook'];
+      var head = '<thead><tr>';
+      var body ='    <tbody><tr>';
+      $.each(book, function (key, data) {
+        head+=' <th>'+key+'</th>';
+        body+= ' <td>'+data+'</td>';
+      })
+      body+= '</tr></tbody>';
+      head+= '</tr></thead>';
+      var html = head + " " + body;
+      $('#book').html(html);
       $('#shannon-result').show();
     });
   }
